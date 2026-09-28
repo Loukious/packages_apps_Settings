@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 The Evolution X Project; SPDX-License-Identifier: Apache-2.0 -->
+<resources>
+    <string name="secure_spaces_title">Secure Spaces</string>
+    <string name="secure_spaces_summary">Separate spaces for your apps, accounts, and files</string>
+    <string name="secure_spaces_description">Each space has its own apps, accounts, files, and screen lock. Set its PIN or password here before opening it to finish setup.</string>
+    <string name="secure_spaces_owner">Personal space</string>
+    <string name="secure_spaces_owner_lock">Change your personal screen lock</string>
+    <string name="secure_spaces_owner_lock_required">Set a PIN or password before managing spaces</string>
+    <string name="secure_spaces_lock_set">Screen lock configured</string>
+    <string name="secure_spaces_setup_required">Set a PIN or password before opening this space</string>
+    <string name="secure_spaces_add">Add secure space</string>
+    <string name="secure_spaces_open">Open space</string>
+    <string name="secure_spaces_rename">Rename space</string>
+    <string name="secure_spaces_remove">Remove space</string>
+    <string name="secure_spaces_remove_confirmation">Remove “%1$s”? Its apps, accounts, and files will be deleted.</string>
+    <string name="secure_spaces_name_required">Enter a name for the space</string>
+    <string name="secure_spaces_name_hint">Space name</string>
+    <string name="secure_spaces_operation_failed">The space could not be updated. Check your screen lock and user restrictions, then try again.</string>
+    <string name="secure_auth_duress_title">Duress credential</string>
+    <string name="secure_auth_duress_summary">Erase device keys with a separate PIN or password</string>
+    <string name="secure_auth_duress_description">A duress PIN or password destroys this phone’s encryption keys and shuts down the phone. Normal credentials take priority. Keep backups of data you need.</string>
+    <string name="secure_auth_duress_verify">Confirm owner to view configuration</string>
+    <string name="secure_auth_duress_enabled">Configured</string>
+    <string name="secure_auth_duress_disabled">Not configured</string>
+    <string name="secure_auth_duress_configure">Set duress PIN and password</string>
+    <string name="secure_auth_duress_remove">Remove duress credentials</string>
+    <string name="secure_auth_duress_enrollment_warning">Entering either credential on the lockscreen permanently erases access to all device data. Choose credentials different from your normal screen locks. Both must contain at least four characters.</string>
+    <string name="secure_auth_duress_pin">Duress PIN</string>
+    <string name="secure_auth_duress_pin_again">Confirm duress PIN</string>
+    <string name="secure_auth_duress_password">Duress password</string>
+    <string name="secure_auth_duress_password_again">Confirm duress password</string>
+    <string name="secure_auth_duress_invalid">Check the credential lengths and confirmation entries</string>
+    <string name="secure_auth_duress_failed">Configuration could not be verified. Confirm the owner and try again.</string>
+    <string name="secure_spaces_initial_lock_title">Set space screen lock</string>
+    <string name="secure_spaces_initial_lock_description">Set a different screen lock using the same type as your personal screen lock, then confirm your personal screen lock. Afterward, you can add a fingerprint to open this space.</string>
+    <string name="secure_spaces_set_pin">Set PIN</string>
+    <string name="secure_spaces_set_password">Set password</string>
+    <string name="secure_spaces_initial_credential">New credential</string>
+    <string name="secure_spaces_repeat_credential">Confirm credential</string>
+    <string name="secure_spaces_storage_unlock">Unlock protected data to continue moving storage</string>
+    <string name="secure_spaces_lock_and_fingerprint">Screen lock and fingerprint</string>
+    <string name="secure_spaces_set_fingerprint">Set up fingerprint</string>
+    <string name="secure_spaces_fingerprint_description">Screen lock is set. Add a fingerprint to open this space. Its screen lock is still required after a restart.</string>
+    <string name="secure_spaces_fingerprint_unlock">Unlock the space with its screen lock to continue fingerprint setup</string>
+</resources>

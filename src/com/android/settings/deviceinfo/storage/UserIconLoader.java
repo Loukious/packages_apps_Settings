@@ -66,7 +66,7 @@ public class UserIconLoader extends AsyncLoaderCompat<SparseArray<Drawable>> {
     public static SparseArray<Drawable> loadUserIconsWithContext(Context context) {
         SparseArray<Drawable> value = new SparseArray<>();
         UserManager um = context.getSystemService(UserManager.class);
-        for (UserInfo userInfo : um.getUsers()) {
+        for (UserInfo userInfo : Utils.getPublicUsers(context)) {
             value.put(userInfo.id, Utils.getUserIcon(context, um, userInfo));
         }
         return value;

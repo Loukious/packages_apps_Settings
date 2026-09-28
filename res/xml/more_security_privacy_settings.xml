@@ -22,6 +22,23 @@
     android:title="@string/more_security_privacy_settings">
 
     <!-- work profile security section. See also: security_advanced_settings.xml and
+    privacy_advanced_settings.xml. -->
+    <Preference
+        android:order="0"
+        android:key="secure_spaces"
+        android:title="@string/secure_spaces_title"
+        android:summary="@string/secure_spaces_summary"
+        android:fragment="com.android.settings.security.securespaces.SecureSpacesSettings"
+        settings:controller="com.android.settings.security.securespaces.SecureSpacesPreferenceController" />
+
+    <Preference
+        android:key="secure_auth_duress"
+        android:title="@string/secure_auth_duress_title"
+        android:summary="@string/secure_auth_duress_summary"
+        android:fragment="com.android.settings.security.securespaces.SecureAuthDuressSettings"
+        settings:controller="com.android.settings.security.securespaces.SecureAuthDuressPreferenceController" />
+
+    <!-- work profile security section. See also: security_advanced_settings.xml and
     privacy_advanced_settings.xml. That page also has these same entries.
      The order is -10 to make sure it is always at the top. -->
     <PreferenceCategory

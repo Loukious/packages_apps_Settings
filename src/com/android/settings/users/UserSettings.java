@@ -399,6 +399,8 @@ public class UserSettings extends SettingsPreferenceFragment
         mUserCaps = UserCapabilities.create(activity);
         mUserManager = (UserManager) activity.getSystemService(Context.USER_SERVICE);
         if (!mUserCaps.mEnabled) {
+            getPreferenceScreen().removeAll();
+            finish();
             return;
         }
 
@@ -1787,7 +1789,8 @@ public class UserSettings extends SettingsPreferenceFragment
     int getRealUsersCount() {
         return (int) mUserManager.getUsers()
                 .stream()
-                .filter(user -> !user.isGuest() && !user.isProfile())
+                .filter(user -> !user.isGuest() && !user.isProfile()
+                        && user.isUiSwitchableHumanUser())
                 .count();
     }
 

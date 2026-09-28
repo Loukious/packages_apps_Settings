@@ -81,8 +81,12 @@ public class StorageWizardMoveConfirm extends StorageWizardBase {
     public void onNavigateNext(View view) {
         // Ensure that all users are unlocked so that we can move their data
         final LockPatternUtils lpu = new LockPatternUtils(this);
+        final UserManager users = getSystemService(UserManager.class);
+        final UserInfo current = users.getUserInfo(android.app.ActivityManager.getCurrentUser());
+        final boolean concealed = current != null
+                && UserManager.USER_TYPE_FULL_SECURE_SPACE.equals(current.userType);
         if (StorageManager.isFileEncrypted()) {
-            for (UserInfo user : getSystemService(UserManager.class).getUsers()) {
+            for (UserInfo user : users.getUsers()) {
                 if (StorageManager.isCeStorageUnlocked(user.id)) {
                     continue;
                 }
@@ -93,8 +97,11 @@ public class StorageWizardMoveConfirm extends StorageWizardBase {
                 } else {
                     Log.d(TAG, "Secured user " + user.id + " is currently locked; requesting "
                             + "manual unlock");
-                    final CharSequence description = TextUtils.expandTemplate(
-                            getText(R.string.storage_wizard_move_unlock), user.name);
+                    final CharSequence description =
+                            concealed || UserManager.USER_TYPE_FULL_SECURE_SPACE.equals(user.userType)
+                            ? getText(R.string.secure_spaces_storage_unlock)
+                            : TextUtils.expandTemplate(
+                                    getText(R.string.storage_wizard_move_unlock), user.name);
                     final ChooseLockSettingsHelper.Builder builder =
                             new ChooseLockSettingsHelper.Builder(this);
                     builder.setRequestCode(REQUEST_CREDENTIAL)

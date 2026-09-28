@@ -417,9 +417,23 @@ public final class Utils extends com.android.settingslib.Utils {
         }
     }
 
+    /** Public summaries retain ordinary profiles without disclosing concealed full users. */
+    public static List<UserInfo> getPublicUsers(Context context) {
+        UserManager users = context.getSystemService(UserManager.class);
+        int currentId = context.getUserId();
+        UserInfo current = users.getUserInfo(currentId);
+        boolean concealed = current != null
+                && UserManager.USER_TYPE_FULL_SECURE_SPACE.equals(current.userType);
+        return users.getUsers().stream().filter(user -> {
+            if (concealed) return user.id == currentId || users.isSameProfileGroup(currentId, user.id);
+            if (UserManager.USER_TYPE_FULL_SECURE_SPACE.equals(user.userType)) return false;
+            UserInfo parent = user.isProfile() ? users.getProfileParent(user.id) : null;
+            return parent == null || !UserManager.USER_TYPE_FULL_SECURE_SPACE.equals(parent.userType);
+        }).collect(java.util.stream.Collectors.toList());
+    }
+
     public static boolean hasMultipleUsers(Context context) {
-        return context.getSystemService(UserManager.class)
-                .getUsers().size() > 1;
+        return getPublicUsers(context).size() > 1;
     }
 
     /**

@@ -156,7 +156,7 @@ public class VpnPreferenceController extends AbstractPreferenceController
 
     protected int getNumberOfNonLegacyVpn(UserManager userManager, VpnManager vpnManager) {
         // Converted from SystemUI::SecurityControllerImpl
-        return (int) userManager.getUsers().stream()
+        return (int) com.android.settings.Utils.getPublicUsers(mContext).stream()
                 .map(user -> vpnManager.getVpnConfig(user.id))
                 .filter(cfg -> (cfg != null) && (!cfg.legacy))
                 .count();

@@ -452,7 +452,7 @@ public class AppButtonsPreferenceController extends BasePreferenceController imp
             enabled = handleDisableable();
         } else {
             if ((mPackageInfo.applicationInfo.flags & ApplicationInfo.FLAG_INSTALLED) == 0
-                    && mUserManager.getUsers().size() >= 2) {
+                    && Utils.getPublicUsers(mContext).size() >= 2) {
                 // When we have multiple users, there is a separate menu
                 // to uninstall for all users.
                 enabled = false;

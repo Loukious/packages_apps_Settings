@@ -119,6 +119,11 @@ import java.util.Map;
 public class ChooseLockPassword extends SettingsActivity {
     private static final String TAG = "ChooseLockPassword";
 
+    // Internal, non-exported credential picker. Secure configuration screens perform their
+    // own owner-authenticated native transaction after receiving the confirmed new credential.
+    public static final String EXTRA_COLLECT_CREDENTIAL = "secure_auth_collect_credential";
+    public static final String EXTRA_COLLECT_DESCRIPTION = "secure_auth_collect_description";
+
     static final String EXTRA_KEY_MIN_METRICS = "min_metrics";
     static final String EXTRA_KEY_MIN_COMPLEXITY = "min_complexity";
     public static final String EXTRA_KEY_FOR_SUPERVISION_RESET = "for_supervision_reset";
@@ -256,6 +261,8 @@ public class ChooseLockPassword extends SettingsActivity {
 
         private LockscreenCredential mCurrentCredential;
         private LockscreenCredential mChosenPassword;
+        private boolean mCollectCredential;
+        private String mCollectDescription;
         private boolean mRequestGatekeeperPassword;
         private boolean mRequestWriteRepairModePassword;
 
@@ -538,6 +545,12 @@ public class ChooseLockPassword extends SettingsActivity {
             }
             // Only take this argument into account if it belongs to the current profile.
             mUserId = Utils.getUserIdFromBundle(getActivity(), intent.getExtras());
+            mCollectCredential = intent.getBooleanExtra(EXTRA_COLLECT_CREDENTIAL, false);
+            mCollectDescription = intent.getStringExtra(EXTRA_COLLECT_DESCRIPTION);
+            if (mCollectCredential && (UserHandle.myUserId() != UserHandle.USER_SYSTEM
+                    || mUserId != UserHandle.USER_SYSTEM)) {
+                throw new SecurityException("Owner-only credential picker");
+            }
             mProfileType = getProfileType();
             mForFingerprint = intent.getBooleanExtra(
                     ChooseLockSettingsHelper.EXTRA_KEY_FOR_FINGERPRINT, false);
@@ -641,6 +654,13 @@ public class ChooseLockPassword extends SettingsActivity {
                 passwordEntryLayout.setHintEnabled(true);
             }
             mPasswordEntry = view.findViewById(R.id.password_entry);
+            if (mCollectCredential) {
+                mPasswordEntry.setSaveEnabled(false);
+                mPasswordEntry.setImportantForAutofill(
+                        View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
+                mPasswordEntry.setImeOptions(mPasswordEntry.getImeOptions()
+                        | android.view.inputmethod.EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
+            }
             mPasswordEntry.setOnEditorActionListener(this);
             mPasswordEntry.addTextChangedListener(this);
             mPasswordEntry.requestFocus();
@@ -728,6 +748,10 @@ public class ChooseLockPassword extends SettingsActivity {
             super.onDestroy();
             if (mCurrentCredential != null) {
                 mCurrentCredential.zeroize();
+            }
+            if (mCollectCredential) {
+                if (mChosenPassword != null) mChosenPassword.zeroize();
+                if (mFirstPassword != null) mFirstPassword.zeroize();
             }
             // Force a garbage collection immediately to remove remnant of user password shards
             // from memory.
@@ -822,6 +846,8 @@ public class ChooseLockPassword extends SettingsActivity {
         @Override
         public void onSaveInstanceState(Bundle outState) {
             super.onSaveInstanceState(outState);
+            // Restart collection after recreation rather than putting secrets into saved state.
+            if (mCollectCredential) return;
             outState.putString(KEY_UI_STAGE, mUiStage.name());
             outState.putParcelable(KEY_FIRST_PASSWORD, mFirstPassword);
             if (mCurrentCredential != null) {
@@ -882,7 +908,8 @@ public class ChooseLockPassword extends SettingsActivity {
         boolean validatePassword(LockscreenCredential credential) {
             mValidationErrors = PasswordMetrics.validateCredential(mMinMetrics, mMinComplexity,
                     credential);
-            if (mValidationErrors.isEmpty() && mLockPatternUtils.checkPasswordHistory(
+            if (!mCollectCredential && mValidationErrors.isEmpty()
+                    && mLockPatternUtils.checkPasswordHistory(
                         credential.getCredential(), getPasswordHistoryHashFactor(), mUserId)) {
                 mValidationErrors =
                         Collections.singletonList(new PasswordValidationError(RECENTLY_USED));
@@ -1100,6 +1127,9 @@ public class ChooseLockPassword extends SettingsActivity {
             if (message != 0) {
                 mMessage.setVisibility(View.VISIBLE);
                 mMessage.setText(message);
+            } else if (mCollectCredential && mCollectDescription != null) {
+                mMessage.setVisibility(View.VISIBLE);
+                mMessage.setText(mCollectDescription);
             } else {
                 mMessage.setVisibility(View.INVISIBLE);
             }
@@ -1117,7 +1147,7 @@ public class ChooseLockPassword extends SettingsActivity {
             if (mAutoPinConfirmOption == null) {
                 return;
             }
-            if (enabled
+            if (enabled && !mCollectCredential
                     && !mIsAlphaMode
                     && isAutoPinConfirmPossible(length)
                     && !isSupervisingProfile()) {
@@ -1184,6 +1214,16 @@ public class ChooseLockPassword extends SettingsActivity {
         }
 
         private void startSaveAndFinish() {
+            if (mCollectCredential) {
+                Intent result = new Intent().putExtra(ChooseLockSettingsHelper.EXTRA_KEY_PASSWORD,
+                        mChosenPassword.duplicate());
+                getActivity().setResult(Activity.RESULT_OK, result);
+                mPasswordEntry.setText("");
+                mChosenPassword.zeroize();
+                mFirstPassword.zeroize();
+                getActivity().finish();
+                return;
+            }
             if (mSaveAndFinishWorker != null) {
                 Log.w(TAG, "startSaveAndFinish with an existing SaveAndFinishWorker.");
                 return;

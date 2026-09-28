@@ -11,6 +11,9 @@ package {
 // Build SettingsRoboTestStub.apk which includes test-only resources.
 android_app {
     name: "SettingsRoboTestStub",
+    // Host runtime is API 35; do not inherit the production APK minimum SDK.
+    min_sdk_version: "35",
+    dont_merge_manifests: true,
     defaults: [
         "SettingsLib-search-defaults",
         "SettingsLibDefaults",
@@ -44,6 +47,14 @@ android_app {
 }
 
 // Settings Robolectric test target.
+android_robolectric_test {
+    name: "SecureSpaceRepositoryRoboTests",
+    srcs: ["src/com/android/settings/security/securespaces/*Test.java"],
+    associates: ["Settings-core"],
+    instrumentation_for: "SettingsRoboTestStub",
+    strict_mode: false,
+}
+
 android_robolectric_test {
     name: "SettingsRoboTests",
     srcs: [

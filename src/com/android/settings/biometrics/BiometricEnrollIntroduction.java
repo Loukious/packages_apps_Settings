@@ -16,12 +16,15 @@
 
 package com.android.settings.biometrics;
 
+import android.app.KeyguardManager;
 import android.app.admin.DevicePolicyManager;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.hardware.biometrics.BiometricAuthenticator;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Log;
@@ -61,6 +64,8 @@ public abstract class BiometricEnrollIntroduction extends BiometricEnrollBase
         implements LinkSpan.OnClickListener {
 
     private static final String TAG = "BiometricEnrollIntroduction";
+    public static final String EXTRA_DEFER_CONFIRM_UNTIL_UNLOCKED =
+            "secure_space_defer_biometric_confirm_until_unlocked";
 
     private static final String KEY_CONFIRMING_CREDENTIALS = "confirming_credentials";
     private static final String KEY_SCROLLED_TO_BOTTOM = "scrolled";
@@ -74,6 +79,22 @@ public abstract class BiometricEnrollIntroduction extends BiometricEnrollBase
     protected boolean mNextClicked;
     private boolean mParentalConsentRequired;
     private boolean mHasScrolledToBottom = false;
+    private boolean mDeferredSecureSpaceConfirmation;
+    private final Handler mDeferredHandler = new Handler(Looper.getMainLooper());
+    private final Runnable mDeferredConfirmation = new Runnable() {
+        @Override public void run() {
+            if (!mDeferredSecureSpaceConfirmation || isFinishing() || isDestroyed()) return;
+            KeyguardManager keyguard = getSystemService(KeyguardManager.class);
+            if (keyguard == null || keyguard.isDeviceLocked(mUserId)
+                    || keyguard.isKeyguardLocked()) {
+                mDeferredHandler.postDelayed(this, 250);
+                return;
+            }
+            mDeferredSecureSpaceConfirmation = false;
+            getIntent().removeExtra(EXTRA_DEFER_CONFIRM_UNTIL_UNLOCKED);
+            launchCredentialGateIfNeeded();
+        }
+    };
 
     @Nullable protected PorterDuffColorFilter mIconColorFilter;
 
@@ -209,21 +230,9 @@ public abstract class BiometricEnrollIntroduction extends BiometricEnrollBase
         mUserManager = getUserManager();
         updatePasswordQuality();
 
-        // Check isFinishing() because FaceEnrollIntroduction may finish self to launch
-        // FaceSettings during onCreate()
-        if (!mConfirmingCredentials && !isFinishing()) {
-            if (!mHasPassword) {
-                // No password registered, launch into enrollment wizard.
-                mConfirmingCredentials = true;
-                launchChooseLock();
-            } else if (!BiometricUtils.containsGatekeeperPasswordHandle(getIntent())
-                    && mToken == null) {
-                // It's possible to have a token but mLaunchedConfirmLock == false, since
-                // ChooseLockGeneric can pass us a token.
-                mConfirmingCredentials = true;
-                launchConfirmLock(getConfirmLockTitleResId());
-            }
-        }
+        mDeferredSecureSpaceConfirmation = intent.getBooleanExtra(
+                EXTRA_DEFER_CONFIRM_UNTIL_UNLOCKED, false) && !mConfirmingCredentials;
+        if (!mDeferredSecureSpaceConfirmation) launchCredentialGateIfNeeded();
 
         final GlifLayout layout = getLayout();
         mFooterBarMixin = layout.getMixin(FooterBarMixin.class);
@@ -264,6 +273,19 @@ public abstract class BiometricEnrollIntroduction extends BiometricEnrollBase
         }
     }
 
+    private void launchCredentialGateIfNeeded() {
+        // Check isFinishing() because FaceEnrollIntroduction may finish itself during onCreate().
+        if (mConfirmingCredentials || isFinishing()) return;
+        if (!mHasPassword) {
+            mConfirmingCredentials = true;
+            launchChooseLock();
+        } else if (!BiometricUtils.containsGatekeeperPasswordHandle(getIntent())
+                && mToken == null) {
+            mConfirmingCredentials = true;
+            launchConfirmLock(getConfirmLockTitleResId());
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -280,6 +302,10 @@ public abstract class BiometricEnrollIntroduction extends BiometricEnrollBase
     @Override
     protected void onResume() {
         super.onResume();
+        if (mDeferredSecureSpaceConfirmation) {
+            mDeferredHandler.removeCallbacks(mDeferredConfirmation);
+            mDeferredHandler.post(mDeferredConfirmation);
+        }
 
         //reset mNextClick to make sure introduction page would be closed correctly
         mNextClicked = false;
@@ -299,6 +325,12 @@ public abstract class BiometricEnrollIntroduction extends BiometricEnrollBase
     }
 
     @Override
+    protected void onPause() {
+        mDeferredHandler.removeCallbacks(mDeferredConfirmation);
+        super.onPause();
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(KEY_CONFIRMING_CREDENTIALS, mConfirmingCredentials);
@@ -307,7 +339,8 @@ public abstract class BiometricEnrollIntroduction extends BiometricEnrollBase
 
     @Override
     protected boolean shouldFinishWhenBackgrounded() {
-        return super.shouldFinishWhenBackgrounded() && !mConfirmingCredentials && !mNextClicked;
+        return super.shouldFinishWhenBackgrounded() && !mConfirmingCredentials && !mNextClicked
+                && !mDeferredSecureSpaceConfirmation;
     }
 
     @VisibleForTesting

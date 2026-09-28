@@ -25,6 +25,21 @@
         android:key="dashboard_tile_placeholder" />
 
     <!-- Main security section - for trust agents added in code. -->
+    <Preference
+        android:order="200"
+        android:key="secure_spaces"
+        android:title="@string/secure_spaces_title"
+        android:summary="@string/secure_spaces_summary"
+        android:fragment="com.android.settings.security.securespaces.SecureSpacesSettings"
+        settings:controller="com.android.settings.security.securespaces.SecureSpacesPreferenceController" />
+
+    <Preference
+        android:key="secure_auth_duress"
+        android:title="@string/secure_auth_duress_title"
+        android:summary="@string/secure_auth_duress_summary"
+        android:fragment="com.android.settings.security.securespaces.SecureAuthDuressSettings"
+        settings:controller="com.android.settings.security.securespaces.SecureAuthDuressPreferenceController" />
+
     <com.android.settingslib.widget.UntitledPreferenceCategory
         android:order="210"
         android:key="security_category" />

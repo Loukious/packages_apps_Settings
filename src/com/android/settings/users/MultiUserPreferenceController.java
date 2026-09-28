@@ -33,6 +33,12 @@ public class MultiUserPreferenceController extends BasePreferenceController {
 
     @Override
     public int getAvailabilityStatus() {
+        UserManager users = mContext.getSystemService(UserManager.class);
+        UserInfo current = users.getUserInfo(UserHandle.myUserId());
+        if (current != null
+                && UserManager.USER_TYPE_FULL_SECURE_SPACE.equals(current.userType)) {
+            return UNSUPPORTED_ON_DEVICE;
+        }
         return (UserHandle.MU_ENABLED && UserManager.supportsMultipleUsers()
                 && !Utils.isMonkeyRunning()) ? AVAILABLE : UNSUPPORTED_ON_DEVICE;
     }

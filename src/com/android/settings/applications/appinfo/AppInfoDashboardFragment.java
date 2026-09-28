@@ -63,6 +63,7 @@ import com.android.settings.applications.specialaccess.interactacrossprofiles.In
 import com.android.settings.applications.specialaccess.pictureinpicture.PictureInPictureDetailPreferenceController;
 import com.android.settings.core.SubSettingLauncher;
 import com.android.settings.dashboard.DashboardFragment;
+import com.android.settings.Utils;
 import com.android.settings.utils.HsuUtils;
 import com.android.settingslib.RestrictedLockUtilsInternal;
 import com.android.settingslib.applications.AppUtils;
@@ -604,7 +605,7 @@ public class AppInfoDashboardFragment extends DashboardFragment
             showIt = false;
         } else if (!mUserManager.isAdminUser()) {
             showIt = false;
-        } else if (mUserManager.getUsers().size() < 2) {
+        } else if (Utils.getPublicUsers(getContext()).size() < 2) {
             showIt = false;
         } else if (getNumberOfUserWithPackageInstalled(mPackageName) < 2
                 && (appEntry.info.flags & ApplicationInfo.FLAG_INSTALLED) != 0) {
@@ -723,7 +724,7 @@ public class AppInfoDashboardFragment extends DashboardFragment
 
     @VisibleForTesting
     int getNumberOfUserWithPackageInstalled(String packageName) {
-        final List<UserInfo> userInfos = mUserManager.getAliveUsers();
+        final List<UserInfo> userInfos = Utils.getPublicUsers(getContext());
         int count = 0;
 
         for (final UserInfo userInfo : userInfos) {

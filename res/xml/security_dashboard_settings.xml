@@ -22,6 +22,21 @@
     android:title="@string/security_settings_title">
 
     <!-- security_settings_status.xml -->
+    <Preference
+        android:order="9"
+        android:key="secure_spaces"
+        android:title="@string/secure_spaces_title"
+        android:summary="@string/secure_spaces_summary"
+        android:fragment="com.android.settings.security.securespaces.SecureSpacesSettings"
+        settings:controller="com.android.settings.security.securespaces.SecureSpacesPreferenceController" />
+
+    <Preference
+        android:key="secure_auth_duress"
+        android:title="@string/secure_auth_duress_title"
+        android:summary="@string/secure_auth_duress_summary"
+        android:fragment="com.android.settings.security.securespaces.SecureAuthDuressSettings"
+        settings:controller="com.android.settings.security.securespaces.SecureAuthDuressPreferenceController" />
+
     <PreferenceCategory
         android:order="-10"
         android:key="security_status"

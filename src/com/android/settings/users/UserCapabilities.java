@@ -66,6 +66,11 @@ public class UserCapabilities {
         }
 
         final UserInfo myUserInfo = userManager.getUserInfo(UserHandle.myUserId());
+        if (myUserInfo != null
+                && UserManager.USER_TYPE_FULL_SECURE_SPACE.equals(myUserInfo.userType)) {
+            caps.mEnabled = false;
+            return caps;
+        }
         caps.mIsGuest = myUserInfo.isGuest();
         caps.mIsAdmin = myUserInfo.isAdmin();
         caps.mIsMain = myUserInfo.isMain();

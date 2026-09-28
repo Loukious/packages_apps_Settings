@@ -71,9 +71,14 @@ public class NonCurrentUserController extends AbstractPreferenceController imple
             Context context, UserManager userManager) {
         int currentUserId = ActivityManager.getCurrentUser();
         List<NonCurrentUserController> controllers = new ArrayList<>();
+        UserInfo current = userManager.getUserInfo(currentUserId);
+        if (current != null && UserManager.USER_TYPE_FULL_SECURE_SPACE.equals(current.userType)) {
+            return controllers;
+        }
         List<UserInfo> infos = userManager.getUsers();
         for (UserInfo info : infos) {
-            if (info.id == currentUserId || !info.isFull()) {
+            if (info.id == currentUserId || !info.isFull()
+                    || UserManager.USER_TYPE_FULL_SECURE_SPACE.equals(info.userType)) {
                 continue;
             }
             int[] profiles = userManager.getProfileIds(info.id, false /* enabledOnly */);
